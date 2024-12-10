@@ -39,11 +39,11 @@ def generate_response(user_prompt):
 # Streamlit App
 def main():
     st.set_page_config(page_title="General Chatbot", layout="wide")
-    st.title("General Chatbot: Ask Anything!")
+    st.title("Bahul's Chatbot: Ask Anything!")
 
     # Text Input for User's Query
     user_input = st.text_input("Enter your question:")
-    st.write("You can ask about any topic, and the AI will try to help!")
+    st.write("You can ask about any topic, and I will try to help!")
 
     if user_input:
         with st.spinner("Generating response..."):
