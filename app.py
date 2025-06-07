@@ -8,7 +8,8 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Configure model
-model = genai.GenerativeModel("gemini-pro")
+model = genai.GenerativeModel("models/gemini-1.5-flash")
+
 
 # Custom system prompt
 CUSTOM_PROMPT = """
