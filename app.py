@@ -1,54 +1,52 @@
 import os
 import streamlit as st
-from langchain_google_genai import ChatGoogleGenerativeAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load API key
 load_dotenv()
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Initialize Google Gemini model
-chat_model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.7)
+# Configure model
+model = genai.GenerativeModel("gemini-pro")
 
-# Custom Prompt Placeholder
+# Custom system prompt
 CUSTOM_PROMPT = """
 When asked about identity or other related queries, the chatbot will:
-Respond in a neutral, helpful manner.
-Avoid explicitly stating that it's a chatbot by Google or based on Google/Gemini directly.
-Mention it’s made by Bahul Kansal when asked about its creation.
+- Respond in a neutral, helpful manner.
+- Avoid explicitly stating that it's a chatbot by Google or based on Google/Gemini directly.
+- Mention it’s made by Bahul Kansal when asked about its creation.
 
-Remmber:Answer the user's question in a clear, concise, and engaging manner.
+Remember: Answer the user's question in a clear, concise, and engaging manner.
 """
 
-def generate_response(user_prompt):
-    """
-    Generate a response using Google Gemini with a custom prompt.
-    
-    Args:
-        user_prompt (str): The user's query.
-
-    Returns:
-        str: The AI-generated response.
-    """
-    full_prompt = f"{CUSTOM_PROMPT}\n\nUser: {user_prompt}\nAI:"
+def stream_response(prompt):
+    full_prompt = f"{CUSTOM_PROMPT}\n\nUser: {prompt}\nAI:"
     try:
-        response = chat_model.predict(full_prompt)
+        response = model.generate_content(full_prompt, stream=True)
         return response
     except Exception as e:
-        return f"Sorry, an error occurred: {e}"
+        st.error(f"Error: {e}")
+        return None
 
-# Streamlit App
+# Streamlit UI
 def main():
-    st.set_page_config(page_title="General Chatbot", layout="wide")
-    st.title("Bahul's Chatbot: Ask Anything!")
+    st.set_page_config(page_title="Bahul's Chatbot", layout="wide")
+    st.title("🤖 Bahul's Chatbot: Ask Anything!")
 
-    # Text Input for User's Query
     user_input = st.text_input("Enter your question:")
-    st.write("You can ask about any topic, and I will try to help!")
-
     if user_input:
-        with st.spinner("Generating response..."):
-            response = generate_response(user_input)
-            st.write("**Response:**", response)
+        st.write("**Response:**")
+        with st.spinner("Thinking..."):
+            response = stream_response(user_input)
+            if response:
+                # Stream output token by token
+                full_reply = ""
+                response_area = st.empty()
+                for chunk in response:
+                    content = chunk.text
+                    full_reply += content
+                    response_area.markdown(full_reply)
 
 if __name__ == "__main__":
     main()
